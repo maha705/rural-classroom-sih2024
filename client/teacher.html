@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Portal - Live Classroom</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="classroom-container">
+        <header class="classroom-header">
+            <h2>👨‍🏫 Teacher Portal</h2>
+            <div class="controls">
+                <input type="text" id="teacherName" placeholder="Your Name" required>
+                <input type="text" id="classroomId" placeholder="Classroom ID (e.g., MATH101)" required>
+                <button id="startClass" class="btn btn-primary">Start Class</button>
+                <button id="endClass" class="btn btn-danger" style="display:none;">End Class</button>
+            </div>
+        </header>
+        
+        <div class="video-grid">
+            <div class="video-container main-video">
+                <video id="teacherVideo" autoplay muted></video>
+                <div class="video-label">You (Teacher)</div>
+                <div class="video-controls">
+                    <button id="toggleVideo" class="control-btn" title="Toggle Camera">📹</button>
+                    <button id="toggleAudio" class="control-btn" title="Toggle Microphone">🎤</button>
+                    <button id="shareScreen" class="control-btn" title="Share Screen">🖥️</button>
+                </div>
+            </div>
+            
+            <div id="studentVideos" class="student-grid">
+                <div class="waiting-message">
+                    <h3>Waiting for students to join...</h3>
+                    <p>Share your Classroom ID with students</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-panel">
+            <div class="status-panel">
+                <div class="status-item">
+                    <span class="label">Connected Students:</span>
+                    <span id="studentCount" class="value">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Class Status:</span>
+                    <span id="classStatus" class="value">Not Started</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Your Classroom ID:</span>
+                    <span id="displayClassroomId" class="value">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

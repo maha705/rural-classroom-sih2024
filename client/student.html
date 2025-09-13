@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal - Live Classroom</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="classroom-container">
+        <header class="classroom-header">
+            <h2>👨‍🎓 Student Portal</h2>
+            <div class="controls">
+                <input type="text" id="studentName" placeholder="Your Name" required>
+                <input type="text" id="classroomId" placeholder="Enter Classroom ID" required>
+                <button id="joinClass" class="btn btn-primary">Join Class</button>
+                <button id="leaveClass" class="btn btn-danger" style="display:none;">Leave Class</button>
+            </div>
+        </header>
+        
+        <div class="video-grid">
+            <div class="video-container main-video">
+                <video id="teacherVideo" autoplay></video>
+                <div class="video-label">Teacher</div>
+                <div class="connection-indicator">
+                    <div id="teacherConnectionStatus">Waiting for teacher...</div>
+                </div>
+            </div>
+            
+            <div class="video-container student-self">
+                <video id="studentVideo" autoplay muted></video>
+                <div class="video-label">You (Student)</div>
+                <div class="video-controls">
+                    <button id="toggleVideo" class="control-btn" title="Toggle Camera">📹</button>
+                    <button id="toggleAudio" class="control-btn" title="Toggle Microphone">🎤</button>
+                    <button id="raiseHand" class="control-btn" title="Raise Hand">✋</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-panel">
+            <div class="status-panel">
+                <div class="status-item">
+                    <span class="label">Connection Status:</span>
+                    <span id="connectionStatus" class="value">Disconnected</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Other Students:</span>
+                    <span id="studentCount" class="value">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Classroom:</span>
+                    <span id="displayClassroomId" class="value">Not joined</span>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                <h4>📋 Instructions:</h4>
+                <ol>
+                    <li>Enter your name</li>
+                    <li>Get Classroom ID from your teacher</li>
+                    <li>Click "Join Class"</li>
+                    <li>Allow camera and microphone access</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

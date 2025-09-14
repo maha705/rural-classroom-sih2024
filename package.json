@@ -8,7 +8,7 @@
     "dev": "node server/server.js"
   },
   "keywords": ["education", "webrtc", "video-calling", "rural", "sih"],
-  "author": "Your Team Name",
+  "author": "SIH Team",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",

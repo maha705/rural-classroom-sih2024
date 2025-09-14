@@ -1,21 +1,10 @@
 {
-  "name": "rural-classroom-video",
-  "version": "1.0.0",
-  "description": "Live video calling platform for rural education - SIH 2024",
-  "main": "server/server.js",
-  "scripts": {
-    "start": "node server/server.js",
-    "dev": "node server/server.js"
-  },
-  "keywords": ["education", "webrtc", "video-calling", "rural", "sih"],
-  "author": "Your Team Name",
-  "license": "MIT",
-  "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^4.7.2",
-    "cors": "^2.8.5"
-  },
-  "engines": {
-    "node": ">=16.0.0"
-  }
-}
+     "name": "rural-classroom-server",
+     "version": "1.0.0",
+     "main": "server.js",
+     "dependencies": {
+       "express": "^4.18.2",
+       "socket.io": "^4.7.2",
+       "cors": "^2.8.5"
+     }
+   }

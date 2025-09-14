@@ -1,7 +1,3 @@
-// =============================================
-// GLOBAL VARIABLES AND CONFIGURATION
-// =============================================
-
 let socket;
 let localStream;
 let remoteStreams = {};
@@ -13,7 +9,6 @@ let isVideoEnabled = true;
 let isAudioEnabled = true;
 let isClassActive = false;
 
-// WebRTC Configuration with STUN servers
 const configuration = {
     iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
@@ -23,12 +18,7 @@ const configuration = {
     iceCandidatePoolSize: 10
 };
 
-// =============================================
-// UTILITY FUNCTIONS
-// =============================================
-
 function showMessage(message, type = 'info') {
-    // Create and show temporary message
     const messageDiv = document.createElement('div');
     messageDiv.className = `message message-${type}`;
     messageDiv.textContent = message;
@@ -47,12 +37,7 @@ function showMessage(message, type = 'info') {
     `;
     
     document.body.appendChild(messageDiv);
-    
-    // Remove message after 3 seconds
-    setTimeout(() => {
-        messageDiv.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => messageDiv.remove(), 300);
-    }, 3000);
+    setTimeout(() => messageDiv.remove(), 3000);
 }
 
 function updateStatus(elementId, status, type = 'info') {
@@ -71,10 +56,6 @@ function updateStudentCount() {
     });
 }
 
-// =============================================
-// SOCKET.IO INITIALIZATION AND HANDLERS
-// =============================================
-
 function initializeSocket() {
     socket = io();
     
@@ -90,43 +71,28 @@ function initializeSocket() {
         updateStatus('connectionStatus', 'Disconnected', 'error');
     });
     
-    // WebRTC Signaling handlers
     socket.on('user-joined', handleUserJoined);
     socket.on('user-left', handleUserLeft);
     socket.on('offer', handleOffer);
     socket.on('answer', handleAnswer);
     socket.on('ice-candidate', handleIceCandidate);
     socket.on('classroom-state', handleClassroomState);
-    
-    socket.on('error', (error) => {
-        console.error('Socket error:', error);
-        showMessage('Connection error occurred', 'error');
-    });
 }
-
-// =============================================
-// WEBRTC MEDIA HANDLING
-// =============================================
 
 async function getUserMedia(constraints = { video: true, audio: true }) {
     try {
         console.log('Requesting user media...');
-        
         localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        
         console.log('Got user media successfully');
         showMessage('Camera and microphone access granted', 'success');
         
-        // Display local video
         const videoElement = document.getElementById(userType + 'Video');
         if (videoElement) {
             videoElement.srcObject = localStream;
             videoElement.play();
         }
         
-        // Update control button states
         updateControlButtons();
-        
         return localStream;
     } catch (error) {
         console.error('Error accessing media devices:', error);
@@ -167,16 +133,11 @@ function updateControlButtons() {
     }
 }
 
-// =============================================
-// WEBRTC PEER CONNECTION MANAGEMENT
-// =============================================
-
 function createPeerConnection(targetUserId) {
     console.log('Creating peer connection for:', targetUserId);
     
     const peerConnection = new RTCPeerConnection(configuration);
     
-    // Add local stream tracks
     if (localStream) {
         localStream.getTracks().forEach(track => {
             console.log('Adding track:', track.kind);
@@ -184,7 +145,6 @@ function createPeerConnection(targetUserId) {
         });
     }
     
-    // Handle remote stream
     peerConnection.ontrack = (event) => {
         console.log('Received remote stream from:', targetUserId);
         remoteStreams[targetUserId] = event.streams[0];
@@ -192,7 +152,6 @@ function createPeerConnection(targetUserId) {
         updateStudentCount();
     };
     
-    // Handle ICE candidates
     peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
             console.log('Sending ICE candidate to:', targetUserId);
@@ -203,20 +162,13 @@ function createPeerConnection(targetUserId) {
         }
     };
     
-    // Handle connection state changes
     peerConnection.onconnectionstatechange = () => {
         console.log(`Connection with ${targetUserId}:`, peerConnection.connectionState);
         
         if (peerConnection.connectionState === 'connected') {
-            showMessage(`Connected to user`, 'success');
+            showMessage('Connected to user', 'success');
         } else if (peerConnection.connectionState === 'failed') {
-            showMessage(`Connection failed with user`, 'error');
-            // Attempt to reconnect
-            setTimeout(() => {
-                if (peerConnection.connectionState === 'failed') {
-                    peerConnection.restartIce();
-                }
-            }, 1000);
+            showMessage('Connection failed with user', 'error');
         }
     };
     
@@ -224,16 +176,11 @@ function createPeerConnection(targetUserId) {
     return peerConnection;
 }
 
-// =============================================
-// WEBRTC SIGNALING HANDLERS
-// =============================================
-
 async function handleUserJoined(data) {
     console.log('User joined:', data);
     showMessage(`${data.userName || 'User'} joined the class`, 'success');
     
     if (userType === 'teacher' && data.userType === 'student') {
-        // Teacher initiates connection with student
         try {
             const peerConnection = createPeerConnection(data.userId);
             const offer = await peerConnection.createOffer({
@@ -319,29 +266,21 @@ async function handleIceCandidate(data) {
         }
     } catch (error) {
         console.error('Error adding ICE candidate:', error);
-        // ICE candidate errors are common and usually not critical
     }
 }
 
 function handleClassroomState(state) {
     console.log('Classroom state updated:', state);
-    // Update UI based on classroom state
     updateStudentCount();
 }
 
-// =============================================
-// VIDEO DISPLAY MANAGEMENT
-// =============================================
-
 function displayRemoteStream(userId, stream) {
     if (userType === 'student') {
-        // Student viewing teacher's stream
         const teacherVideo = document.getElementById('teacherVideo');
         if (teacherVideo && !teacherVideo.srcObject) {
             teacherVideo.srcObject = stream;
             teacherVideo.play();
             
-            // Hide connection indicator
             const indicator = document.getElementById('teacherConnectionStatus');
             if (indicator) {
                 indicator.textContent = 'Connected';
@@ -349,7 +288,6 @@ function displayRemoteStream(userId, stream) {
             }
         }
     } else if (userType === 'teacher') {
-        // Teacher viewing student streams
         addStudentVideo(userId, stream);
     }
 }
@@ -358,13 +296,11 @@ function addStudentVideo(studentId, stream) {
     const studentVideos = document.getElementById('studentVideos');
     if (!studentVideos) return;
     
-    // Remove waiting message if it exists
     const waitingMessage = studentVideos.querySelector('.waiting-message');
     if (waitingMessage) {
         waitingMessage.remove();
     }
     
-    // Don't add duplicate videos
     if (document.getElementById('video-' + studentId)) {
         return;
     }
@@ -398,7 +334,6 @@ function removeVideoElement(userId) {
         console.log('Removed video element:', userId);
     }
     
-    // If no more students, show waiting message
     if (userType === 'teacher') {
         const studentVideos = document.getElementById('studentVideos');
         if (studentVideos && studentVideos.children.length === 0) {
@@ -411,10 +346,6 @@ function removeVideoElement(userId) {
         }
     }
 }
-
-// =============================================
-// MEDIA CONTROL FUNCTIONS
-// =============================================
 
 function toggleVideo() {
     if (localStream) {
@@ -451,13 +382,8 @@ function toggleAudio() {
 }
 
 function raiseHand() {
-    showMessage('Hand raised! (Feature coming soon)', 'info');
-    // This could be implemented to send a signal to the teacher
+    showMessage('Hand raised!', 'info');
 }
-
-// =============================================
-// CLASS MANAGEMENT FUNCTIONS
-// =============================================
 
 async function startClass() {
     const nameInput = document.getElementById('teacherName');
@@ -472,32 +398,26 @@ async function startClass() {
     }
     
     try {
-        // Show loading state
         const startBtn = document.getElementById('startClass');
         const endBtn = document.getElementById('endClass');
         
         startBtn.textContent = 'Starting...';
         startBtn.disabled = true;
         
-        // Get user media first
         await getUserMedia();
         
-        // Join classroom
         socket.emit('join-classroom', {
             classroomId,
             userType: 'teacher',
             userName
         });
         
-        // Update UI
         startBtn.style.display = 'none';
         endBtn.style.display = 'inline-block';
         
-        // Update status
         updateStatus('classStatus', 'Class Started', 'success');
         updateStatus('displayClassroomId', classroomId, 'info');
         
-        // Disable inputs
         nameInput.disabled = true;
         classIdInput.disabled = true;
         
@@ -508,7 +428,6 @@ async function startClass() {
         console.error('Error starting class:', error);
         showMessage('Failed to start class. Please check camera/microphone access.', 'error');
         
-        // Reset button state
         const startBtn = document.getElementById('startClass');
         startBtn.textContent = 'Start Class';
         startBtn.disabled = false;
@@ -528,32 +447,26 @@ async function joinClass() {
     }
     
     try {
-        // Show loading state
         const joinBtn = document.getElementById('joinClass');
         const leaveBtn = document.getElementById('leaveClass');
         
         joinBtn.textContent = 'Joining...';
         joinBtn.disabled = true;
         
-        // Get user media first
         await getUserMedia();
         
-        // Join classroom
         socket.emit('join-classroom', {
             classroomId,
             userType: 'student',
             userName
         });
         
-        // Update UI
         joinBtn.style.display = 'none';
         leaveBtn.style.display = 'inline-block';
         
-        // Update status
         updateStatus('connectionStatus', 'Connected', 'success');
         updateStatus('displayClassroomId', classroomId, 'info');
         
-        // Disable inputs
         nameInput.disabled = true;
         classIdInput.disabled = true;
         
@@ -564,7 +477,6 @@ async function joinClass() {
         console.error('Error joining class:', error);
         showMessage('Failed to join class. Please check camera/microphone access.', 'error');
         
-        // Reset button state
         const joinBtn = document.getElementById('joinClass');
         joinBtn.textContent = 'Join Class';
         joinBtn.disabled = false;
@@ -588,7 +500,6 @@ function leaveClass() {
 }
 
 function cleanup() {
-    // Stop all media tracks
     if (localStream) {
         localStream.getTracks().forEach(track => {
             track.stop();
@@ -596,24 +507,18 @@ function cleanup() {
         localStream = null;
     }
     
-    // Close all peer connections
     Object.values(peerConnections).forEach(pc => {
         pc.close();
     });
     peerConnections = {};
     remoteStreams = {};
     
-    // Disconnect socket
     if (socket) {
         socket.disconnect();
     }
     
     isClassActive = false;
 }
-
-// =============================================
-// PAGE-SPECIFIC INITIALIZATION
-// =============================================
 
 function initializeTeacher() {
     console.log('Initializing teacher interface...');
@@ -632,7 +537,6 @@ function initializeTeacher() {
         showMessage('Screen sharing coming soon!', 'info');
     });
     
-    // Handle Enter key in input fields
     const inputs = document.querySelectorAll('#teacherName, #classroomId');
     inputs.forEach(input => {
         input.addEventListener('keypress', (e) => {
@@ -658,7 +562,6 @@ function initializeStudent() {
     if (toggleAudioBtn) toggleAudioBtn.addEventListener('click', toggleAudio);
     if (raiseHandBtn) raiseHandBtn.addEventListener('click', raiseHand);
     
-    // Handle Enter key in input fields
     const inputs = document.querySelectorAll('#studentName, #classroomId');
     inputs.forEach(input => {
         input.addEventListener('keypress', (e) => {
@@ -669,23 +572,14 @@ function initializeStudent() {
     });
 }
 
-// =============================================
-// MAIN INITIALIZATION
-// =============================================
-
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing application...');
     
-    // Add CSS animations for messages
     const style = document.createElement('style');
     style.textContent = `
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
         }
         .message { transition: all 0.3s ease; }
         .value.success { color: #4CAF50; }
@@ -694,10 +588,8 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(style);
     
-    // Initialize socket connection
     initializeSocket();
     
-    // Determine user type based on current page
     const path = window.location.pathname;
     
     if (path.includes('teacher.html') || path.endsWith('teacher')) {
@@ -711,35 +603,18 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Application initialized as:', userType);
 });
 
-// =============================================
-// CLEANUP ON PAGE UNLOAD
-// =============================================
-
 window.addEventListener('beforeunload', () => {
     cleanup();
 });
-
-// =============================================
-// ERROR HANDLING
-// =============================================
 
 window.addEventListener('error', (event) => {
     console.error('JavaScript error:', event.error);
     showMessage('An error occurred. Please refresh the page.', 'error');
 });
 
-// Handle unhandled promise rejections
 window.addEventListener('unhandledrejection', (event) => {
     console.error('Unhandled promise rejection:', event.reason);
     showMessage('Connection error occurred', 'error');
 });
 
 console.log('script.js loaded successfully');
-
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(`Local access: http://localhost:${PORT}`);
-  }
-});

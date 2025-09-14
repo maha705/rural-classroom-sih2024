@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,7 +14,9 @@ const io = socketIo(server, {
 });
 
 app.use(cors());
-app.use(express.static('../client'));
+
+// Serve static files from client directory
+app.use(express.static(path.join(__dirname, '../client')));
 
 // Store connected users
 const users = {};
@@ -94,9 +97,24 @@ io.on('connection', (socket) => {
   });
 });
 
+// Routes
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/index.html'));
+});
+
+app.get('/teacher.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/teacher.html'));
+});
+
+app.get('/student.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/student.html'));
+});
+
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || 'localhost';
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Open http://localhost:${PORT} in your browser`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`Local access: http://localhost:${PORT}`);
+  }
 });
